@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+    <title>Update Candidate</title>
+</head>
+<body>
+<h1 th:align="center">UPDATE CANDIDATE</h1>
+<div class="container">
+    <form th:action="@{/candidates/edit}" th:object="${candidate}" method="post">
+<!--        <p th:text="${candidate}"></p>-->
+        <input th:type="hidden" th:field="*{id}" class="candidate_id">
+        <div class="row mb-3">
+            <label for="name" class="col-sm-1 col-form-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="name" th:field="*{fullName}">
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <label for="dob" class="col-sm-1 col-form-label">DOB</label>
+            <div class="col-sm-10">
+                <input type="date" class="form-control" id="dob" th:field="${candidate.dob}">
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <label for="phone" class="col-sm-1 col-form-label">Phone</label>
+            <div class="col-sm-10">
+                <input type="tel" class="form-control" id="phone" th:field="*{phone}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="email" class="col-sm-1 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="email" th:field="*{email}">
+            </div>
+        </div>
+
+        <div class="row g-1" aria-label="Address">
+            <label class="col-sm-1 col-form-label">Address</label>
+            <div class="col-sm-1">
+                <input type="text" class="form-control" placeholder="Number" aria-label="Number" th:field="${address.number}">
+            </div>
+            <div class="col-sm-2">
+                <input type="text" class="form-control" placeholder="Street" aria-label="Street" th:field="${address.street}">
+            </div>
+            <div class="col-sm-1">
+                <input type="text" class="form-control" placeholder="City" aria-label="City" th:field="${address.city}">
+            </div>
+            <div class="col-sm-1">
+                <input type="text" class="form-control" placeholder="Zip code" aria-label="Zipcode" th:field="${address.zipcode}">
+            </div>
+
+            <div class="col-sm-1 text-right">
+                <label class="col-auto col-form-label">Country</label>
+            </div>
+            <div class="col-auto">
+                <select class="form-control" th:field="${address.country}" id="address-country" aria-label="country">
+                    <option th:each="country: ${countries}" th:value="${country}" th:text="${country.name}"></option>
+                </select>
+            </div>
+        </div>
+        <br/>
+        <div class="d-flex gap-3 col-2 mx-auto">
+            <input class="btn btn-primary me-3" type="submit" value="Update Candidate">
+            <a th:href="@{/candidates/list_paging}" class="btn btn-outline-secondary"> Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
