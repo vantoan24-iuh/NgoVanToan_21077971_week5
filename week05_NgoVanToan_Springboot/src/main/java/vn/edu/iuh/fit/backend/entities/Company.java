@@ -8,6 +8,7 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -41,8 +42,7 @@ public class Company extends User implements Serializable {
     private Address address;
 
     @OneToMany(mappedBy = "company")
-    @ToString.Exclude
-    private List<Job> jobs;
+    private Set<Job> jobs;
 
 
     public Company(String about, String email, String compName, String phone, String webUrl) {

@@ -17,7 +17,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
 
     @Query("SELECT j FROM Job j WHERE j.company.id = ?1")
-    public List<Job> findJobByCompany_Id(Long companyId);
+    List<Job> findJobsByCompanyId(Long companyId);
 
     @Query("SELECT COUNT(j) FROM Job j WHERE j.company.id = :companyId")
     int countJobByCompanyId(Long companyId);
@@ -26,7 +26,5 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             "join CandidateSkill cs on cs.skill.id = js.skill.id " +
             "where cs.candidate.id = :canId and cs.skillLevel >= js.skillLevel " +
             "group by jb.id" )
-    public Page<Job> findJobsForCandidateWithSkillLevel(@Param("canId") Long canId, Pageable pageable);
-    @Query("SELECT j FROM Job j WHERE j.company.id = :companyId")
-    List<Job> findJobsByCompanyId(@Param("companyId") Long companyId);
+    Page<Job> findJobsForCandidateWithSkillLevel(@Param("canId") Long canId, Pageable pageable);
 }

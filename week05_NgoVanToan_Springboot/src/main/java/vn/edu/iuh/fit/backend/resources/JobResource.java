@@ -73,4 +73,10 @@ public class JobResource {
         Page<Job> jobs = jobServices.findJobsForCandidateWithSkillLevel(canId, pageNo, pageSize);
         return ResponseEntity.ok(jobs);
     }
+
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<Job>> getJobsByCompanyId(@PathVariable Long companyId) {
+        List<Job> jobs = jobServices.getJobsByCompanyIda(companyId);
+        return ResponseEntity.ok(jobs);
+    }
 }

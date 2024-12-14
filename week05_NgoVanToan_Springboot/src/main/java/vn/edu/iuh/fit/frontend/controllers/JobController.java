@@ -22,6 +22,7 @@ import java.util.List;
 @RequestMapping("/job")
 @SessionAttributes("userLogin")
 public class JobController {
+
     @Autowired
     private JobService jobServices;
 
@@ -37,54 +38,62 @@ public class JobController {
     @Autowired
     private CompanyModel companyModels;
 
-    @Autowired
-    private CompanyService companyService;
-
+    // Hiển thị jobs với phân trang
     @GetMapping("")
     public String showJobsPaging(HttpSession session, Model model,
-                                 @RequestParam(defaultValue = "0") Integer pageNo,
-                                 @RequestParam(defaultValue = "8") Integer pageSize) {
+                                 @RequestParam(defaultValue = "0", required = false) Integer pageNo,
+                                 @RequestParam(defaultValue = "8", required = false) Integer pageSize) {
         User user = (User) session.getAttribute("userLogin");
+
         if (user == null) {
-            return "redirect:/login";
+            return "redirect:/login"; // Redirect nếu user chưa đăng nhập
         }
 
         Company company = companyModels.getCompanyById(user.getId());
+
         Page<Job> jobPage = jobModels.getJobsByCompanyI_Paging(user.getId(), pageNo, pageSize);
 
-        model.addAttribute("job", jobPage);
+        model.addAttribute("jobs", jobPage);
         model.addAttribute("company", company);
 
-        return "company/jobs/job";
+        return "company/job/jobs";
     }
 
-    @GetMapping("/job/list")
-    public String listJobs(Model model, @RequestParam("companyId") Long companyId) {
-        List<Job> jobs = jobServices.getJobsByCompanyIda(companyId);
-        Company company = companyService.getById(companyId); // Assuming you have a service for this
+    // Hiển thị jobs không phân trang
+    @GetMapping("/list")
+    public String showJobsNoPaging(Model model, @RequestParam("companyId") Long companyId) {
+        if (companyId == null) {
+            throw new IllegalArgumentException("CompanyId must not be null");
+        }
 
-        model.addAttribute("jobs", jobs);
-        model.addAttribute("company", company);
+        List<Job> jobPage = jobServices.getJobsByCompanyIda(companyId);
+        if (jobPage == null) {
+            jobPage = new ArrayList<>(); // Tránh null
+        }
 
-        return "company/jobs/job";
+        model.addAttribute("jobPage", jobPage);
+
+        System.out.println("Company ID: " + companyId);
+        System.out.println("Jobs: " + jobPage.toString());
+
+        return "company/job/jobs";
     }
 
 
     @GetMapping({"/edit/{jobId}", "/add"})
-    public String actionFormJob(HttpSession session, Model model,
+    public String actionFormJob(HttpSession session,Model model,
                                 @ModelAttribute Job job,
                                 @PathVariable(required = false) Long jobId,
                                 @RequestParam(required = false) String action,
                                 @RequestParam(required = false, defaultValue = "0") Integer numTagSkill) {
 
         User user = session.getAttribute("userLogin") != null ? (User) session.getAttribute("userLogin") : null;
-        assert user != null;
-        Company company = companyModels.getCompanyById(user.getId());
+        Company companyDto = companyModels.getCompanyById(user.getId());
         if (jobId !=null) {
             job = jobModels.getJobById(jobId);
         } else {
             job = new Job();
-            job.setCompany(company);
+            job.setCompany(companyDto);
 
             List<JobSkill> jobSkills = new ArrayList<>();
             jobSkills.add(new JobSkill());
@@ -102,22 +111,22 @@ public class JobController {
 
         if("newTagSkill".equals(action)) {
             for (int i = 0; i < numTagSkill; i++) {
-                JobSkill jobSkill = new JobSkill();
-                jobSkill.setSkill(new Skill());
-                jobSkill.getSkill().setId((long) -i);
-                job.getJobSkills().add(jobSkill);
+                JobSkill jobSkillDto = new JobSkill();
+                jobSkillDto.setSkill(new Skill());
+                jobSkillDto.getSkill().setId((long) -i);
+                job.getJobSkills().add(jobSkillDto);
             }
         }
 
         model.addAttribute("numTagSkill", numTagSkill);
-        return "company/jobs/form-job";
+        return "company/job/form-job";
     }
 
     @PostMapping("/save")
     public String saveJob(HttpSession session, @ModelAttribute("job")  Job job) {
         System.out.println(job.toString());
         jobModels.saveaJob(job);
-        return "redirect:/job";
+        return "redirect:/jobs";
     }
 
 }

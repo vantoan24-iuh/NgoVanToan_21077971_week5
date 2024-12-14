@@ -5,8 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.edu.iuh.fit.backend.entities.Company;
 import vn.edu.iuh.fit.backend.entities.Job;
 import vn.edu.iuh.fit.backend.entities.JobSkill;
+import vn.edu.iuh.fit.backend.entities.Skill;
+import vn.edu.iuh.fit.backend.ids.JobSkillId;
 import vn.edu.iuh.fit.backend.respositories.CompanyRepository;
 import vn.edu.iuh.fit.backend.respositories.JobRepository;
 import vn.edu.iuh.fit.backend.respositories.JobSkillRepository;
@@ -14,6 +17,7 @@ import vn.edu.iuh.fit.backend.respositories.SkillRepository;
 import vn.edu.iuh.fit.backend.services.JobServiceImp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -46,9 +50,8 @@ public class JobService implements JobServiceImp {
 
     @Override
     public List<Job> getJobsByCompanyIda(Long companyId) {
-        return  jobRepository.findJobsByCompanyId(companyId);
+        return jobRepository.findJobsByCompanyId(companyId);
     }
-
 
     @Override
     public Job getJobById(Long id) {
@@ -57,7 +60,55 @@ public class JobService implements JobServiceImp {
 
     @Override
     public Job saveJob(Job jobDto) {
-        return null;
+        Job job = new Job();
+
+        if (jobDto.getCompany().getId() == null) {
+            return null;
+        }
+        Company company = companyRepository.findById(jobDto.getCompany().getId())
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+        job.setCompany(company);
+
+        job.setJobSkills(Collections.emptyList());
+        Job jobAdd = jobRepository.save(job);
+
+        if (jobDto.getJobSkills() != null) {
+            List<JobSkill> jobSkills = new ArrayList<>();
+            jobDto.getJobSkills().forEach(jobSkillDTO -> {
+
+                Skill skill = new Skill();
+                // find skill by id
+                if (jobSkillDTO.getSkill().getId() != null) {
+                    skill = skillRepository.findById(jobSkillDTO.getSkill().getId())
+                            .orElseThrow(() -> new RuntimeException("Skill not found"));
+
+                } else {
+                    // create new skill
+                    skill.setSkillName(jobSkillDTO.getSkill().getSkillName());
+                    skill.setSkillDescription(jobSkillDTO.getSkill().getSkillDescription());
+                    skill.setType(jobSkillDTO.getSkill().getType());
+                    skillRepository.save(skill);
+                }
+
+                // create job skill
+                JobSkill jobSkill = new JobSkill();
+                jobSkill.setSkill(skill);
+                jobSkill.setJob(jobAdd);
+
+                // create job skill id
+                JobSkillId jobSkillId = new JobSkillId();
+                jobSkillId.setJobId(jobAdd.getId());
+                jobSkillId.setSkillId(skill.getId());
+
+                jobSkill.setId(jobSkillId);
+
+                jobSkillRepository.save(jobSkill);
+                jobSkills.add(jobSkill);
+            });
+            jobAdd.setJobSkills(jobSkills);
+        }
+        System.out.println("job service"+jobAdd);
+        return jobRepository.save(jobAdd);
     }
 
     @Override
@@ -77,6 +128,6 @@ public class JobService implements JobServiceImp {
     @Override
     public Page<Job> findJobsForCandidateWithSkillLevel(Long canId, int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        return jobRepository.findJobsForCandidateWithSkillLevel(canId, pageable);
+        return (Page<Job>) jobRepository.findJobsForCandidateWithSkillLevel(canId, pageable).stream().toList();
     }
 }
